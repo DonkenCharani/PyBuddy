@@ -1,0 +1,25 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Database
+data/*.db
+data/*.db-journal
+
+# Environment variables
+.env
+.env.local
+
+# IDEs and editors
+.vscode/
+.idea/
+
+# Streamlit configs
+.streamlit/config.toml
+!.streamlit/config.example.toml
+
+# Virtual Environment
+venv/
+.venv/
+env/
