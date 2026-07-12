@@ -105,6 +105,15 @@ st.markdown(
         border-radius: 8px;
         border: 1px solid #334155;
     }
+    /* Text Area Text Color */
+    .stTextArea textarea {
+        color: white !important;
+        -webkit-text-fill-color: white !important;
+        caret-color: white !important;
+    }
+    .stTextArea textarea::placeholder {
+        color: #b0b0b0 !important;
+    }
     </style>
     """,
     unsafe_allow_html=True

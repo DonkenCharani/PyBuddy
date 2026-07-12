@@ -6,6 +6,7 @@ from utils.syntax import validate_syntax
 from services.gemini_service import generate_response, is_api_configured
 from services.database import log_practice
 from prompts.evaluator import EXERCISE_GENERATOR_PROMPT, CODE_EVALUATOR_PROMPT
+from utils.json_parser import parse_json_response
 
 # Headers
 st.markdown("<h1 class='gradient-header'>💻 Coding Practice</h1>", unsafe_allow_html=True)
@@ -41,12 +42,16 @@ if btn_gen:
             if is_api_configured():
                 prompt = EXERCISE_GENERATOR_PROMPT.format(topic=topic_select, difficulty=difficulty_select)
                 response_text = generate_response(prompt, json_mode=True)
-                
+
+                st.subheader("Raw Exercise JSON")
+                st.code(response_text)
+
                 clean_text = response_text.strip()
+
                 if clean_text.startswith("```"):
                     clean_text = clean_text.split("```json")[-1].split("```")[0].strip()
-                    
-                exercise_data = json.loads(clean_text)
+
+                exercise_data = parse_json_response(response_text)
             else:
                 # Mock backup practice exercise
                 exercise_data = {
@@ -159,10 +164,62 @@ if st.session_state["practice_exercise"]:
                     
                     if is_api_configured():
                         response_text = generate_response(eval_prompt, json_mode=True)
+
+                        st.write("Gemini Response:")
+                        st.code(response_text)
+
                         clean_text = response_text.strip()
+
                         if clean_text.startswith("```"):
                             clean_text = clean_text.split("```json")[-1].split("```")[0].strip()
-                        eval_data = json.loads(clean_text)
+
+                        try:
+                            st.subheader("Raw Gemini Response")
+                            st.code(clean_text)
+                            eval_data = parse_json_response(response_text)
+                        except Exception as e:
+                            st.error(f"Invalid JSON returned by Gemini:\n\n{clean_text}")
+                            raise e
+                        # Extra validation before trusting Gemini
+
+                        valid, syntax_error = validate_syntax(code_submission)
+
+                        if not valid:
+                            eval_data["passed"] = False
+                            eval_data["correctness_feedback"] = syntax_error
+                            eval_data["logic_feedback"] = "Your program contains syntax errors."
+                            eval_data["hint_to_fix"] = "Fix the syntax errors before submitting."
+
+                        # Reject placeholder code
+                        bad_patterns = [
+                            "pass",
+                            "...",
+                            "TODO",
+                        ]
+
+                        for pattern in bad_patterns:
+                            if pattern in code_submission:
+                                eval_data["passed"] = False
+                                eval_data["correctness_feedback"] = "Your solution is incomplete."
+                                eval_data["logic_feedback"] = "You still have placeholder code."
+                                eval_data["hint_to_fix"] = "Replace placeholder code with a real solution."
+                                break
+
+                        # Reject obvious invalid text
+                        bad_words = [
+                            "passuses",
+                            "asdf",
+                            "hello",
+                            "testing"
+                        ]
+
+                        for word in bad_words:
+                            if word in code_submission.lower():
+                                eval_data["passed"] = False
+                                eval_data["correctness_feedback"] = "Your solution contains invalid Python."
+                                eval_data["logic_feedback"] = "The submitted code is not a valid solution."
+                                eval_data["hint_to_fix"] = "Write a proper Python function."
+                                break
                     else:
                         # Demo Mode Evaluator response
                         eval_data = {
@@ -188,7 +245,10 @@ if st.session_state["practice_exercise"]:
                     )
                     
                 except Exception as e:
-                    st.error(f"Evaluation error: {str(e)}")
+                    st.error(f"Evaluation error: {e}")
+
+                    if "response_text" in locals():
+                        st.code(response_text)
                     
     # Render errors or evaluation report
     if st.session_state["practice_syntax_error"]:

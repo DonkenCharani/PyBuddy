@@ -2,7 +2,7 @@ import streamlit as st
 import random
 from utils.constants import TIPS_OF_THE_DAY, PYTHON_FACTS, DAILY_CHALLENGES
 from services.database import get_or_create_user
-
+from utils.syntax import validate_syntax
 # Display Gradient Page Headers
 st.markdown("<h1 class='gradient-header'>Welcome to PyBuddy!</h1>", unsafe_allow_html=True)
 st.markdown("<p class='gradient-subheader'>Your Personal AI Python Learning Companion</p>", unsafe_allow_html=True)
@@ -105,9 +105,20 @@ with col_right:
     challenge_code = st.text_area("Write your code solution here:", value=challenge["starter_code"], height=120)
     
     if st.button("Check Solution"):
-        if "return" in challenge_code or "def " in challenge_code:
-            st.success("🎉 Good job! Your logic structures look correct. Expand below to check against the reference solution.")
+
+        valid, error = validate_syntax(challenge_code)
+
+        if not valid:
+            st.error(error)
+
+        elif "pass" in challenge_code:
+            st.warning("⚠️ Your solution is incomplete. Replace 'pass' with your code.")
+
+        elif "return" not in challenge_code:
+            st.warning("⚠️ Your function must return a value.")
+
+        else:
+            st.success("🎉 Good job! Your logic structures look correct.")
+
             with st.expander("🔍 Show Reference Solution"):
                 st.code(challenge["solution"], language="python")
-        else:
-            st.warning("Make sure to write a function that returns a value!")
