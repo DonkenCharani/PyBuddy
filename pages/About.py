@@ -34,7 +34,7 @@ with tab_about:
         st.markdown(
             """
             - **Backend Framework**: Streamlit (Python Web Framework)
-            - **AI Engine**: Google Gemini API (`gemini-1.5-flash`)
+            - **AI Engine**: Google Gemini API (`gemini-3.5-flash`)
             - **Data Storage**: SQLite 3 Database
             """
         )
@@ -55,25 +55,7 @@ with tab_about:
         "PyBuddy has built-in filters to block harmful topics, malicious operations, and cyberattack commands."
     )
 
-# 2. Bookmarks Manager Tab
-with tab_bookmarks:
-    st.markdown("### ❤️ Your Saved Bookmarks")
-    bookmarks = get_bookmarks(username)
-    
-    if not bookmarks:
-        st.info("You haven't bookmarked any concepts, cheat sheets, or quizzes yet. Use the 'Bookmark' options in Learn or Quiz pages to save files here.")
-    else:
-        for idx, book in enumerate(bookmarks):
-            card_title = f"{book['title']} ({book['item_type'].title()})"
-            with st.expander(f"📌 {card_title}"):
-                
-                # Delete bookmark
-                if st.button("🗑️ Remove Bookmark", key=f"del_book_{book['id']}", use_container_width=True):
-                    remove_bookmark(username, book["item_type"], book["title"])
-                    st.toast("Bookmark removed!")
-                    st.rerun()
-                    
-                formatted_content = book["content"].replace("\n", "<br>")
+
 
 # 2. Bookmarks Manager Tab
 with tab_bookmarks:

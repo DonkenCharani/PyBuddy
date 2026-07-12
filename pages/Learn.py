@@ -120,7 +120,7 @@ if st.session_state["active_note_text"]:
     st.markdown(f"## {note_topic} - {note_activity}")
     
     # Render PDF download and Bookmark actions in columns
-    act_col1, act_col2 = st.columns(2)
+    act_col1 = st.container()
     
     with act_col1:
         # Check if already bookmarked
@@ -136,19 +136,7 @@ if st.session_state["active_note_text"]:
                 st.toast("Saved to bookmarks!")
                 st.rerun()
                 
-    with act_col2:
-        # Generate PDF note download bytes
-        try:
-            pdf_bytes = generate_pdf(f"{note_topic} - {note_activity}", note_text)
-            st.download_button(
-                label="📥 Download Lesson as PDF",
-                data=pdf_bytes,
-                file_name=f"{note_topic.replace(' ', '_')}_{note_activity.replace(' ', '_')}.pdf",
-                mime="application/pdf",
-                use_container_width=True
-            )
-        except Exception as e:
-            st.warning("Could not generate PDF download.")
+
 
     # Main output display container
     st.markdown(
